@@ -1,7 +1,8 @@
-﻿namespace PrivateAccountant.Model.Classes
+﻿using System;
+
+namespace PrivateAccountant.Model.Classes
 {
-    public class Travel
+    public class Travel : Job
     {
-        public int Id { get; set; }
     }
 }

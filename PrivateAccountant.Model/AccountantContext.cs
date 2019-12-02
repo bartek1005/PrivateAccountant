@@ -12,8 +12,9 @@ namespace PrivateAccountant.Model
     {
         public AccountantContext() : base("name=PrivateAccountant")
         {
-            Database.SetInitializer<AccountantContext>(null);
+            //Database.SetInitializer<AccountantContext>(null);
             //Database.SetInitializer<AccountantContext>(new DropCreateDatabaseAlways<AccountantContext>());
+            Database.SetInitializer<AccountantContext>(new AccountantDBInitializer());
 
         }
         public DbSet<Company> Companies { get; set; }
