@@ -40,6 +40,9 @@
     <Reference Include="EntityFramework.SqlServer, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
       <HintPath>..\packages\EntityFramework.6.3.0\lib\net45\EntityFramework.SqlServer.dll</HintPath>
     </Reference>
+    <Reference Include="itextsharp, Version=5.5.13.1, Culture=neutral, PublicKeyToken=8354ae6d2174ddca, processorArchitecture=MSIL">
+      <HintPath>..\packages\iTextSharp.5.5.13.1\lib\itextsharp.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Core" />
@@ -59,9 +62,11 @@
     <Compile Include="Classes\Project.cs" />
     <Compile Include="Classes\Timesheet.cs" />
     <Compile Include="Classes\Travel.cs" />
+    <Compile Include="Classes\TravelDetail.cs" />
     <Compile Include="Classes\Work.cs" />
     <Compile Include="Helper\DateTimeHelper.cs" />
     <Compile Include="Holiday.cs" />
+    <Compile Include="PDFReader\PDFReader.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Classes\Salary.cs" />
   </ItemGroup>

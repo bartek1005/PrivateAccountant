@@ -232,6 +232,12 @@ namespace PrivateAccountant.Model.Classes
 
         public void CalculateProperties()
         {
+            if(BreakStartDateTime !=null && BreakEndDateTime == null)
+            {
+                EndDateTime = (DateTime)BreakStartDateTime;
+                BreakStartDateTime = null;
+                BreakEndDateTime = null;
+            }
             Date = StartDateTime.Date;
             IsHoliday = Date == new DateTime(2019, 11, 11) ? true : false;
             IsWeekend();

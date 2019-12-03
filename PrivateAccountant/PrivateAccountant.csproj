@@ -61,6 +61,10 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\PrivateAccountant.DAL\PrivateAccountant.DAL.csproj">
+      <Project>{256D1802-3C79-4A0E-8A21-3D138D48EB20}</Project>
+      <Name>PrivateAccountant.DAL</Name>
+    </ProjectReference>
     <ProjectReference Include="..\PrivateAccountant.Model\PrivateAccountant.Model.csproj">
       <Project>{B417F142-C013-4C4E-9B8F-5E72206F2BFC}</Project>
       <Name>PrivateAccountant.Model</Name>
