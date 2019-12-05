@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -20,51 +22,47 @@ namespace PrivateAccountant.Model.PDFReader
         public IDictionary<DateTime, Work> KeyValueWorks { get; set; }
         public IDictionary<DateTime, Travel> KeyValueTravels { get; set; }
 
-        public string GetTextFromPDF()
+
+        public void ReadAcroFieldsFromPDF(string[] files)
         {
-            StringBuilder sb = new StringBuilder();
-            using (PdfReader pdfReader = new PdfReader("C:\\Users\\Kawik.B\\Documents\\Timesheets\\81774 KAWIK BARTLOMIEJ 40000057 48 11 2019.PDF"))
+            CultureInfo ci = new CultureInfo("it-IT");
+            DateTime dateTime = DateTime.MinValue;
+            Work work = new Work();
+            Travel travel = new Travel();
+            DateTime currentDate = DateTime.MinValue;
+
+            foreach (var file in files)
             {
-                for (int i = 1; i < pdfReader.NumberOfPages; i++)
+
+
+                using (PdfReader pdfReader = new PdfReader(file))
                 {
-                    sb.Append(PdfTextExtractor.GetTextFromPage(pdfReader, i));
-                }
-            }
+                    //            IList<KeyValuePair<int, AcroFields.Item>> listOfItems = new List<KeyValuePair<int, AcroFields.Item>>();
 
 
-            return sb.ToString();
-        }
+                    foreach (var item in pdfReader.AcroFields.Fields.Where(f => f.Key.Contains("data[0].#subform[0].Tabella1[0]")))
+                    {
 
-        public void ReadAcroFieldsFromPDF()
-        {
-            using (PdfReader pdfReader = new PdfReader("C:\\XXX.PDF"))
-            {
-                //            IList<KeyValuePair<int, AcroFields.Item>> listOfItems = new List<KeyValuePair<int, AcroFields.Item>>();
-                DateTime dateTime = DateTime.MinValue;
-                Work work = new Work();
-                Travel travel = new Travel();
-                DateTime currentDate = DateTime.MinValue;
+                        string textKey, textValue = string.Empty;
+                        char dot = '.';
+                        int indexofLastDot = 0;
+                        textKey = item.Key.ToString();
+                        indexofLastDot = textKey.LastIndexOf(dot) + 1;
+                        textKey = textKey.Substring(indexofLastDot, textKey.Length - indexofLastDot);
 
-                foreach (var item in pdfReader.AcroFields.Fields.Where(f => f.Key.Contains("data[0].#subform[0].Tabella1[0]")))
-                {
+                        var dvValue = item.Value.GetValue(0).GetAsString(PdfName.DV)?.ToString();
+                        var vValue = item.Value.GetValue(0).GetAsString(PdfName.V)?.ToString();
+                        vValue = vValue != null ? vValue.Contains("24:") ? vValue.Replace("24:", "00:") : vValue : null;
+                        if (dvValue != null || vValue != null)
+                            GetData(ref currentDate, ref dateTime, ref work, ref travel, item, vValue, vValue);
 
-                    string textKey, textValue = string.Empty;
-                    char dot = '.';
-                    int indexofLastDot = 0;
-                    textKey = item.Key.ToString();
-                    indexofLastDot = textKey.LastIndexOf(dot) + 1;
-                    textKey = textKey.Substring(indexofLastDot, textKey.Length - indexofLastDot);
+                        Console.WriteLine("---  {0},    {1}", textKey, textValue);
 
-                    var dvValue = item.Value.GetValue(0).GetAsString(PdfName.DV)?.ToString();
-                    var vValue = item.Value.GetValue(0).GetAsString(PdfName.V)?.ToString();
-
-                    GetData(ref currentDate, ref dateTime, ref work, ref travel, item, vValue, vValue);
-
-                    Console.WriteLine("---  {0},    {1}", textKey, textValue);
-
+                    }
                 }
             }
         }
+
 
         private void GetData(ref DateTime currentDate, ref DateTime dateTime, ref Work work, ref Travel travel, KeyValuePair<string, AcroFields.Item> item, string dvValue, string vValue)
         {
@@ -77,7 +75,7 @@ namespace PrivateAccountant.Model.PDFReader
 
                 if (dvValue != null)
                 {
-                    dateTime = DateTime.Parse(dvValue);
+                    DateTime.TryParse(dvValue, CultureInfo.GetCultureInfo("it-IT"), DateTimeStyles.None, out dateTime);
                     currentDate = dateTime;
                 }
             }
@@ -99,7 +97,7 @@ namespace PrivateAccountant.Model.PDFReader
             {
                 if (vValue != null)
                 {
-                    work.EndDateTime = currentDate.Add(TimeSpan.Parse(vValue));
+                    work.BreakStartDateTime = currentDate.Add(TimeSpan.Parse(vValue));
                 }
             }
             else if (item.Key.Contains("ORAENDAM"))
@@ -127,12 +125,15 @@ namespace PrivateAccountant.Model.PDFReader
             {
                 if (vValue != null)
                 {
-                    work.EndDateTime = currentDate.Add(TimeSpan.Parse(vValue));
+                    if (currentDate.Add(TimeSpan.Parse(vValue)) <= work.StartDateTime || (currentDate.Add(TimeSpan.Parse(vValue)).Hour < 12))
+                        work.EndDateTime = currentDate.Add(TimeSpan.Parse(vValue)).AddDays(1);
+                    else
+                        work.EndDateTime = currentDate.Add(TimeSpan.Parse(vValue));
                 }
 
+                work.CalculateProperties();
                 if (work.StartDateTime.Day == dateTime.Day)
                 {
-                    work.CalculateProperties();
                     KeyValueWorks.Add(new KeyValuePair<DateTime, Work>(dateTime, work));
                 }
 
@@ -141,17 +142,19 @@ namespace PrivateAccountant.Model.PDFReader
             {
                 if (vValue != null)
                 {
-                    if (currentDate.Add(TimeSpan.Parse(vValue)) <= travel.StartDateTime)
+                    if (currentDate.Add(TimeSpan.Parse(vValue)) <= travel.StartDateTime || (currentDate.Add(TimeSpan.Parse(vValue)).Hour<12))
                         travel.EndDateTime = currentDate.Add(TimeSpan.Parse(vValue)).AddDays(1);
                     else
                         travel.EndDateTime = currentDate.Add(TimeSpan.Parse(vValue));
                 }
+
+                travel.CalculateProperties();
                 if (travel.StartDateTime.Day == dateTime.Day)
                 {
-                    travel.CalculateProperties();
                     KeyValueTravels.Add(new KeyValuePair<DateTime, Travel>(dateTime, travel));
                 }
             }
         }
     }
 }
+

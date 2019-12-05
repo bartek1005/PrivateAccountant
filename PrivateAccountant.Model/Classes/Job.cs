@@ -76,12 +76,12 @@ namespace PrivateAccountant.Model.Classes
                     if (EndDateTime.Hour < 6)
                         nightHours += (EndDateTime - StartDateTime).GetDifferenceBetweenTwoDates();
                     else
-                        nightHours += (6 - StartDateTime.Hour) - (0 - StartDateTime.Minute) / 60.0;
+                        nightHours += (6 - StartDateTime.Hour) + StartDateTime.Minute / 60.0;
                 }
                 else if (StartDateTime.Hour >= 6 && StartDateTime.Hour < 22)
                 {
                     if (EndDateTime.Hour >= 22)
-                        nightHours += (EndDateTime.Hour - 22) - (0 - EndDateTime.Minute) / 60.0;
+                        nightHours += (EndDateTime.Hour - 22) + EndDateTime.Minute / 60.0;
                     else
                         nightHours += 0;
                 }
@@ -94,12 +94,12 @@ namespace PrivateAccountant.Model.Classes
                 if (StartDateTime.Hour < 6)
                 {
                     if (EndDateTime.Hour < 6)
-                        nightHours += (6 - StartDateTime.Hour) - (0 - StartDateTime.Minute) / 60.0
+                        nightHours += (6 - StartDateTime.Hour) + StartDateTime.Minute / 60.0
                              + 2
-                             + (6 - EndDateTime.Hour) - (0 - EndDateTime.Minute) / 60.0;
+                             + EndDateTime.Hour + EndDateTime.Minute / 60.0;
                     else
-                        nightHours += (6 - StartDateTime.Hour) - (0 - StartDateTime.Minute) / 60.0
-                            + (EndDateTime.Hour - 22) - (0 - EndDateTime.Minute) / 60.0;
+                        nightHours += (6 - StartDateTime.Hour) - StartDateTime.Minute / 60.0
+                            + 8;
                 }
                 else if (StartDateTime.Hour >= 6 && StartDateTime.Hour < 22)
                 {
@@ -111,10 +111,10 @@ namespace PrivateAccountant.Model.Classes
                 else
                 {
                     if (EndDateTime.Hour < 6)
-                        nightHours += (StartDateTime.Hour - 22) - (0 - StartDateTime.Minute) / 60.0
-                            + (6 - EndDateTime.Hour) - (0 - EndDateTime.Minute) / 60.0;
+                        nightHours += (StartDateTime.Hour - 22) + StartDateTime.Minute / 60.0
+                            + (6 - EndDateTime.Hour)  +EndDateTime.Minute / 60.0;
                     else
-                        nightHours += (StartDateTime.Hour - 22) - (0 - StartDateTime.Minute) / 60.0
+                        nightHours += (StartDateTime.Hour - 22) + StartDateTime.Minute / 60.0
                             + 6;
                 }
             }
@@ -136,7 +136,7 @@ namespace PrivateAccountant.Model.Classes
                     else if (breakStart.Hour >= 6 && breakStart.Hour < 22)
                     {
                         if (breakEnd.Hour >= 22)
-                            nightBreakDuration += (breakEnd.Hour - 22) - (0 - breakEnd.Minute) / 60.0;
+                            nightBreakDuration += (breakEnd.Hour - 22) + breakEnd.Minute / 60.0;
                         else
                             nightBreakDuration += 0;
                     }
@@ -180,7 +180,7 @@ namespace PrivateAccountant.Model.Classes
             #endregion
 
             NightBreakHours = nightBreakDuration;
-            NightHours = nightHours;
+            NightHours = nightHours - nightBreakDuration;
 
         }
         private void GetDayHours()
@@ -209,7 +209,7 @@ namespace PrivateAccountant.Model.Classes
             if (IsWeekendDay || IsHoliday)
                 DayOvertimes = DayHours;
             else
-                DayOvertimes = Math.Max(DayHours - 8,0);
+                DayOvertimes = Math.Max(DayHours - 8, 0);
         }
         private void GetNightOvertimes()
         {
@@ -232,12 +232,18 @@ namespace PrivateAccountant.Model.Classes
 
         public void CalculateProperties()
         {
-            if(BreakStartDateTime !=null && BreakEndDateTime == null)
+            DateTime dt = new DateTime(1753, 1, 1);
+            if (StartDateTime == dt && EndDateTime != dt)
+            {
+                StartDateTime = (DateTime)BreakEndDateTime;
+                BreakEndDateTime = null;
+            }
+            else if (StartDateTime != dt && EndDateTime == dt)
             {
                 EndDateTime = (DateTime)BreakStartDateTime;
                 BreakStartDateTime = null;
-                BreakEndDateTime = null;
             }
+
             Date = StartDateTime.Date;
             IsHoliday = Date == new DateTime(2019, 11, 11) ? true : false;
             IsWeekend();

@@ -24,5 +24,6 @@ namespace PrivateAccountant.Model
         public DbSet<Travel> Travels { get; set; }
         public DbSet<TravelDetail> TravelDetails { get; set; }
         public DbSet<Salary> Salaries { get; set; }
+        public DbSet<TimesheetFile> TimesheetFiles { get; set; }
     }
 }

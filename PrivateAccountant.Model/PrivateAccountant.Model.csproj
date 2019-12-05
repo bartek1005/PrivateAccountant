@@ -61,6 +61,7 @@
     <Compile Include="Classes\Job.cs" />
     <Compile Include="Classes\Project.cs" />
     <Compile Include="Classes\Timesheet.cs" />
+    <Compile Include="Classes\TimesheetFile.cs" />
     <Compile Include="Classes\Travel.cs" />
     <Compile Include="Classes\TravelDetail.cs" />
     <Compile Include="Classes\Work.cs" />
